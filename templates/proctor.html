@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proctor Page</title>
+    <link rel="stylesheet" href="static/proctor.css">
+</head>
+<body>
+
+<header>
+    <h1>Proctor Page</h1>
+</header>
+
+<div class="container">
+
+    <!-- File Upload Section -->
+    <div id="file-upload-div">
+        <p>Drag and drop files here or click to select files</p>
+        <input type="file" id="file-input" style="display:none;" multiple>
+    </div>
+
+    <!-- Button to trigger take_prompts.py -->
+    <div>
+        <button id="train-button">Train the model</button>
+    </div>
+
+    <!-- Preview Section -->
+    <div id="preview-div">
+        <!-- Thumbnails of uploaded files will appear here -->
+    </div>
+
+</div>
+
+<footer>
+    <p> 2024 AI Tutor Proctor Page</p>
+</footer>
+
+<script src="static/proctor.js"></script>
+</body>
+</html>

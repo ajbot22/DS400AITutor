@@ -1,0 +1,102 @@
+/* Body and Global Settings */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #C8C8C8;
+    color: #0A2240;
+}
+
+/* Header and Footer */
+header, footer {
+    background-color: #004B98;
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+}
+
+/* Main Content Container */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* File Upload Area */
+#file-upload-div {
+    background-color: #3DB5E6;
+    border: 2px dashed #0A2240;
+    padding: 50px;
+    text-align: center;
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+
+#file-upload-div:hover {
+    background-color: #E1261C;
+    color: white;
+}
+
+/* Button Styles */
+button {
+    background-color: #0A2240;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+button:hover {
+    background-color: #004B98;
+}
+
+/* Preview Section */
+#preview-div {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.file-preview {
+    width: 100px;
+    height: 150px;
+    text-align: center;
+    background-color: #C8C8C8;
+    border: 1px solid #0A2240;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+}
+
+.file-preview img {
+    width: 80px;
+    height: 100px;
+}
+
+.file-preview.untrained {
+    filter: grayscale(100%);
+}
+
+/* File Name */
+.file-name {
+    font-size: 12px;
+    color: #0A2240;
+    margin-top: 5px;
+}
+
+/* Deleting icon */
+.delete-icon {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+}
