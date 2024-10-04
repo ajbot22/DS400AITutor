@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #004B98;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0A2240;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the AI Tutor System</h1>
+        <button onclick="location.href='/student'">Go to Student Page</button>
+        <button onclick="location.href='/proctor'">Go to Proctor Page</button>
+    </div>
+</body>
+</html>

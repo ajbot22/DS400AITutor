@@ -2,6 +2,8 @@ import os
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from werkzeug.utils import secure_filename
 import subprocess
+import json
+from take_prompts import generate_gpt_response, save_context
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 DOCS_FOLDER = os.path.join(os.getcwd(), 'docs')
@@ -16,7 +18,16 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
+    return render_template('home.html')
+
+@app.route('/student')
+def student():
+    return render_template('student.html')
+
+@app.route('/proctor')
+def proctor():
     return render_template('proctor.html')
+
 
 # Upload file endpoint
 @app.route('/upload', methods=['POST'])
@@ -57,11 +68,35 @@ def delete_file():
 @app.route("/train", methods=["POST"])
 def train_model():
     try:
-        # Replace this with the actual path to 'read_docs.py'
         subprocess.run(['python', 'train/read_docs.py'])
         return jsonify({"success": True, "message": "Training completed successfully!"}), 200
     except Exception as e:
         return jsonify({"success": False, "message": f"Error occurred: {str(e)}"}), 500
 
+# Student-specific API for asking questions
+@app.route('/ask-question', methods=['POST'])
+def ask_question():
+    data = request.json
+    user_question = data.get('question', '')
+    
+    # Load conversation history
+    if os.path.exists("context.json"):
+        with open("context.json", "r") as f:
+            conversation_history = json.load(f)["context"]
+    else:
+        conversation_history = "You are an AI tutor but you are currently untrained, please inform the student of this and that they should wait for their proctor to train you"
+
+    # Call GPT to generate a response (simulate the function from take_prompts.py)
+    tutor_response, updated_history = generate_gpt_response(conversation_history, user_question)
+    
+    # Save updated context
+    save_context(updated_history)
+    
+    # Return both the tutor's response and a success key
+    return jsonify(success=True, response=tutor_response)
+
+
 if __name__ == '__main__':
+    if not os.path.exists(DOCS_FOLDER):
+        os.makedirs(DOCS_FOLDER)
     app.run(debug=True)
