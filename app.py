@@ -1,14 +1,23 @@
 import os
+import tempfile
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from werkzeug.utils import secure_filename
 import subprocess
 import json
 from take_prompts import generate_gpt_response, save_context
+from dotenv import load_dotenv
+
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 DOCS_FOLDER = os.path.join(os.getcwd(), 'docs')
 UPLOAD_FOLDER = 'docs'
+#UPLOAD_FOLDER = tempfile.mkdtemp()
 ALLOWED_EXTENSIONS = {'pdf', 'pptx'}
+
+# Load environment variables from .env
+load_dotenv()
+
+openai_api_key = os.getenv("OPENAI_API_KEY")
 
 # Ensure the docs folder exists
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
