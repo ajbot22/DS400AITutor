@@ -15,6 +15,30 @@
         }
         .container {
             text-align: center;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #004B98;
+        }
+        .input-field {
+            display: flex;
+            flex-direction: column;
+            margin: 10px 0;
+        }
+        .input-field label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-field input {
+            padding: 8px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            outline: none;
         }
         button {
             padding: 10px 20px;
@@ -34,6 +58,14 @@
 <body>
     <div class="container">
         <h1>Welcome to the AI Tutor System</h1>
+        <div class="input-field">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="Enter your username">
+        </div>
+        <div class="input-field">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter your password">
+        </div>
         <button onclick="location.href='/student'">Go to Student Page</button>
         <button onclick="location.href='/proctor'">Go to Proctor Page</button>
     </div>

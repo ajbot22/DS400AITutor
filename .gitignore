@@ -1,3 +1,5 @@
 .env
+gcloud_keys
 context.json
 docs
+note.txt

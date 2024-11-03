@@ -12,7 +12,7 @@
 # below:
 .git
 .gitignore
-
+docs
 # Python pycache:
 __pycache__/
 # Ignored by the build system

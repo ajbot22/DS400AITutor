@@ -7,3 +7,6 @@ handlers:
 
   - url: /.*
     script: auto
+    
+resources:
+  memory_gb: 4
