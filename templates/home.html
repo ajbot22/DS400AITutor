@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
     <style>
+        /* Your existing CSS here */
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
@@ -66,8 +67,29 @@
             <label for="password">Password</label>
             <input type="password" id="password" name="password" placeholder="Enter your password">
         </div>
-        <button onclick="location.href='/student'">Go to Student Page</button>
-        <button onclick="location.href='/proctor'">Go to Proctor Page</button>
+        <button onclick="handleLogin('student')">Go to Student Page</button>
+        <button onclick="handleLogin('proctor')">Go to Proctor Page</button>
     </div>
+
+    <script>
+        async function handleLogin(role) {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password, role })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                window.location.href = data.route;
+            } else {
+                alert(data.message);  // Display error message
+            }
+        }
+    </script>
 </body>
 </html>

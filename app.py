@@ -5,12 +5,18 @@ from werkzeug.utils import secure_filename
 import subprocess
 import json
 from take_prompts import generate_gpt_response, save_context
+import psycopg2
 from dotenv import load_dotenv
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
 # Load environment variables
 load_dotenv()
+
+DB_HOST = os.environ.get("DB_HOST")
+DB_NAME = os.environ.get("DB_NAME")
+DB_USER = os.environ.get("DB_USER")
+DB_PASS = os.environ.get("DB_PASS")
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/workspace/gcloud_keys/ds400-capstone-7c0083efd90a.json"
 
@@ -114,6 +120,48 @@ def ask_question():
     save_context(updated_history)
     
     return jsonify(success=True, response=tutor_response)
+
+def get_db_connection():
+    conn = psycopg2.connect(
+        host=DB_HOST,
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASS
+    )
+    return conn
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.json
+    username = data.get("username")
+    password = data.get("password")
+    role = data.get("role")  # Either "student" or "proctor"
+
+    table = "Students" if role == "student" else "Proctors"
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        # Check if user exists
+        cursor.execute(f"SELECT id, password FROM {table} WHERE username = %s", (username,))
+        user = cursor.fetchone()
+
+        if user:
+            # User exists, check password
+            if user[1] == password:
+                return jsonify({"success": True, "message": "Login successful", "route": f"/{role}"})
+            else:
+                return jsonify({"success": False, "message": "Incorrect password"}), 401
+        else:
+            # User doesn't exist, create account
+            cursor.execute(f"INSERT INTO {table} (username, password) VALUES (%s, %s) RETURNING id", (username, password))
+            conn.commit()
+            return jsonify({"success": True, "message": "Account created", "route": f"/{role}"})
+    
+    finally:
+        # Ensure the cursor and connection are closed
+        cursor.close()
+        conn.close()
 
 if __name__ == '__main__':
     app.run(debug=True)
