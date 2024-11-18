@@ -28,7 +28,3 @@ CREATE TABLE IF NOT EXISTS Student_Courses (
     learned_context TEXT,
     PRIMARY KEY (student_id, course_id)
 );
-
-CREATE TABLE IF NOT EXISTS test_env (
-    id SERIAL PRIMARY KEY
-);
