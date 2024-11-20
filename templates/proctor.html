@@ -13,7 +13,25 @@
 </header>
 
 <div class="container">
+    
+    <div class="dropdown-container">
+        <label for="courses-dropdown">Select Course:</label>
+        <select id="courses-dropdown" class="dropdown">
+            <!-- Courses will be dynamically populated here -->
+        </select>
+        <button id="add-course-btn" class="add-course-btn">Add New Course</button>
+    </div>
 
+    <div id="add-course-modal" class="modal">
+        <div class="modal-content">
+            <h3>Add New Course</h3>
+            <label for="course-name-input">Course Name:</label>
+            <input type="text" id="course-name-input" placeholder="Enter course name" />
+            <button id="save-course-btn" class="save-btn">Save</button>
+            <button id="close-modal-btn" class="close-btn">Cancel</button>
+        </div>
+    </div>
+    
     <!-- File Upload Section -->
     <div id="file-upload-div">
         <p>Drag and drop files here or click to select files</p>

@@ -146,5 +146,82 @@ function loadExistingFiles() {
     .catch(err => console.error("Error loading files:", err));
 }
 
+document.addEventListener('DOMContentLoaded', function () {
+    const coursesDropdown = document.getElementById('courses-dropdown');
+    const addCourseBtn = document.getElementById('add-course-btn');
+    const modal = document.getElementById('add-course-modal');
+    const saveCourseBtn = document.getElementById('save-course-btn');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const courseNameInput = document.getElementById('course-name-input');
+
+    // Open the modal
+    addCourseBtn.addEventListener('click', function () {
+        modal.style.display = 'flex';
+    });
+
+    // Close the modal
+    closeModalBtn.addEventListener('click', function () {
+        modal.style.display = 'none';
+    });
+
+    // Fetch courses from the server
+    fetch('/get-courses')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Populate the dropdown menu
+                data.courses.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course.id;
+                    option.textContent = course.name;
+                    coursesDropdown.appendChild(option);
+                });
+            } else {
+                console.error(data.message);
+            }
+        })
+        .catch(error => console.error('Error fetching courses:', error));
+
+    // Save the new course
+    saveCourseBtn.addEventListener('click', function () {
+        const courseName = courseNameInput.value.trim();
+
+        if (!courseName) {
+            alert('Please enter a course name.');
+            return;
+        }
+
+        fetch('/add-course', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: courseName })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Course added successfully!');
+                // Add the new course to the dropdown
+                const option = document.createElement('option');
+                option.value = data.course_id;
+                option.textContent = courseName;
+                coursesDropdown.appendChild(option);
+
+                // Close the modal and clear the input
+                modal.style.display = 'none';
+                courseNameInput.value = '';
+            } else {
+                alert('Error adding course: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error adding course:', error);
+            alert('An unexpected error occurred.');
+        });
+    });
+});
+
+
 // Load existing files on page load
 window.onload = loadExistingFiles;

@@ -30,7 +30,7 @@ bucket = storage_client.bucket(bucket_name)
 
 # Ensure the "admin" folder exists in the bucket
 def ensure_user_folder_exists():
-    blob = bucket.blob(session.get('folder_prefix'))
+    blob = bucket.blob(session.get('folder_prefix')+'/')
     if not blob.exists():
         blob.upload_from_string("", content_type="application/x-www-form-urlencoded")
 
@@ -119,6 +119,71 @@ def ask_question():
     save_context(updated_history)
     
     return jsonify(success=True, response=tutor_response)
+
+@app.route('/get-courses', methods=['GET'])
+def get_courses():
+    proctor_id = session.get("id")
+    if not proctor_id:
+        return jsonify(success=False, message="Unauthorized"), 401
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT id, name FROM Courses WHERE proctor_id = %s", (proctor_id,))
+        courses = cursor.fetchall()
+        # Return a list of courses as JSON
+        return jsonify(success=True, courses=[{"id": row[0], "name": row[1]} for row in courses])
+    except Exception as e:
+        return jsonify(success=False, message=str(e)), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/add-course', methods=['POST'])
+def add_course():
+    # Get the proctor ID and folder prefix from the session
+    proctor_id = session.get("id")
+    folder_prefix = session.get("folder_prefix")
+
+    if not proctor_id or not folder_prefix:
+        return jsonify(success=False, message="Unauthorized"), 401
+
+    # Get the new course name from the request
+    data = request.json
+    course_name = data.get("name", '')
+    if not course_name:
+        return jsonify(success=False, message="Course name is required"), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        # Insert the new course into the Courses table
+        cursor.execute(
+            "INSERT INTO Courses (proctor_id, name, filepath) VALUES (%s, %s, %s) RETURNING id",
+            (proctor_id, course_name, f"{folder_prefix}{course_name}/")
+        )
+        conn.commit()
+
+        # Get the course ID and filepath
+        course_id = cursor.fetchone()[0]
+        course_path = f"{folder_prefix}/{course_name}/"
+
+        # Create the course folder in the bucket
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(course_path)
+        if not blob.exists():
+            blob.upload_from_string("", content_type="application/x-www-form-urlencoded")
+
+        return jsonify(success=True, course={"id": course_id, "name": course_name, "filepath": course_path}), 200
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify(success=False, message=str(e)), 500
+    finally:
+        cursor.close()
+        conn.close()
+
 
 def get_db_connection():
     conn = psycopg2.connect(
