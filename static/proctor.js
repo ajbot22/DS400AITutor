@@ -2,7 +2,6 @@ const fileUploadDiv = document.getElementById('file-upload-div');
 const fileInput = document.getElementById('file-input');
 const previewDiv = document.getElementById('preview-div');
 const trainButton = document.getElementById('train-button');
-
 const docsFolder = "docs"; // Folder to store files
 
 // Clicking on the div opens the file selector
@@ -32,17 +31,28 @@ fileUploadDiv.addEventListener('drop', (e) => {
 
 // Function to handle files and display thumbnails
 function handleFiles(event) {
+    const coursesDropdown = document.getElementById('courses-dropdown');
     const files = event.target.files;
+    const selectedCourse = coursesDropdown.value;
+    const selectedCourseName = coursesDropdown.selectedOptions[0].data;  // This gets the course name
+
+    console.log(coursesDropdown.selectedOptions[0].data)
+    if (!selectedCourseName) {
+        alert("Please select a course before uploading files.");
+        return;
+    }
+
     for (const file of files) {
-        saveFileToDocsFolder(file);
+        saveFileToDocsFolder(file, selectedCourseName); // Pass selected course
         displayFilePreview(file.name, file.type, false); // Mark file as untrained initially
     }
 }
 
-// Save file to the docs folder
-function saveFileToDocsFolder(file) {
+// Save file to the appropriate course's folder
+function saveFileToDocsFolder(file, course) {
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("course", course); // Include the course name or ID
 
     fetch("/upload", {
         method: "POST",
@@ -51,7 +61,7 @@ function saveFileToDocsFolder(file) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            console.log(`${file.name} saved to docs folder.`);
+            console.log(`${file.name} saved to ${course} folder.`);
         } else {
             console.error(`Error saving ${file.name}: ${data.message}`);
         }
@@ -92,15 +102,23 @@ function displayFilePreview(fileName, fileType, isTrained) {
     previewDiv.appendChild(preview);
 }
 
-// Remove file from the docs folder
 function removeFileFromDocsFolder(fileName) {
-    fetch(`/delete?file=${fileName}`, {
+    const coursesDropdown = document.getElementById('courses-dropdown');
+    const selectedCourse = coursesDropdown.value;
+    const selectedCourseName = coursesDropdown.selectedOptions[0].data;  // This gets the course name
+
+    if (!selectedCourseName) {
+        alert("Please select a course.");
+        return;
+    }
+
+    fetch(`/delete?file=${fileName}&course=${selectedCourseName}`, {
         method: "DELETE"
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            console.log(`${fileName} removed from docs folder.`);
+            console.log(`${fileName} removed from ${selectedCourseName} folder.`);
         } else {
             console.error(`Error removing ${fileName}: ${data.message}`);
         }

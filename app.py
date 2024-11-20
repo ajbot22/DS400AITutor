@@ -55,22 +55,51 @@ def proctor():
 # Upload file endpoint
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    # Check for file and course parameters
     if 'file' not in request.files:
         return jsonify(success=False, message="No file part")
     
+    course = request.form.get('course')  # Get course from form data
+    if not course:
+        return jsonify(success=False, message="No course specified")
+
     file = request.files['file']
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        blob = bucket.blob(f"{session.get('folder_prefix')}{filename}")
+        # Construct the file path with course included
+        file_path = f"{session.get('folder_prefix')}/{course}/{filename}"
+        blob = bucket.blob(file_path)
         blob.upload_from_file(file)
         return jsonify(success=True, message="File uploaded")
+    
     return jsonify(success=False, message="Invalid file")
 
 @app.route('/load-docs', methods=['GET'])
 def load_docs():
-    # List files in the proctors folder
-    blobs = bucket.list_blobs(prefix=session.get('folder_prefix'))
-    file_list = [{'name': blob.name.replace(session.get('folder_prefix'), ''), 'type': 'pdf' if blob.name.endswith('.pdf') else 'pptx'} for blob in blobs]
+    # Initialize the storage client 
+    storage_client = storage.Client()
+    bucket_name = "ai-tutor-docs"
+    bucket = storage_client.bucket(bucket_name)
+
+    # Get the folder prefix for the current session
+    folder_prefix = session.get('folder_prefix')
+    if not folder_prefix:
+        return jsonify({'error': 'Folder prefix not found in session'}), 400
+
+    # List blobs in the bucket with the specified prefix
+    blobs = bucket.list_blobs(prefix=folder_prefix)
+    
+    # Filter out directories and invalid file types
+    valid_extensions = ['pdf', 'pptx']
+    file_list = [
+        {
+            'name': blob.name.replace(folder_prefix, ''),  # Remove prefix from file name
+            'type': 'pdf' if blob.name.endswith('.pdf') else 'pptx'
+        }
+        for blob in blobs
+        if not blob.name.endswith('/') and blob.name.split('.')[-1] in valid_extensions
+    ]
+
     return jsonify(file_list)
 
 @app.route('/docs/<filename>')
@@ -86,11 +115,22 @@ def get_doc(filename):
 # Delete file endpoint
 @app.route('/delete', methods=['DELETE'])
 def delete_file():
-    file_name = request.args.get('file')
-    blob = bucket.blob(f"{session.get('folder_prefix')}{file_name}")
+    file_name = request.args.get('file')  # File name to delete
+    course = request.args.get('course')  # Course directory
+
+    if not file_name:
+        return jsonify(success=False, message="No file specified")
+    if not course:
+        return jsonify(success=False, message="No course specified")
+
+    # Construct the file path with course included
+    file_path = f"{session.get('folder_prefix')}/{course}/{file_name}"
+    blob = bucket.blob(file_path)
+
     if blob.exists():
         blob.delete()
         return jsonify(success=True, message="File deleted")
+    
     return jsonify(success=False, message="File not found")
 
 # Train model endpoint

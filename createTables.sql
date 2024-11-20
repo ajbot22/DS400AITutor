@@ -1,3 +1,8 @@
+DROP TABLE Student_Courses;
+DROP TABLE Courses;
+DROP TABLE Students;
+DROP TABLE Proctors;
+
 -- Proctors Table
 CREATE TABLE IF NOT EXISTS Proctors (
     id SERIAL PRIMARY KEY,
