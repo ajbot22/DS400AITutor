@@ -31,12 +31,12 @@ fileUploadDiv.addEventListener('drop', (e) => {
 
 // Function to handle files and display thumbnails
 function handleFiles(event) {
+    console.log(event)
     const coursesDropdown = document.getElementById('courses-dropdown');
     const files = event.target.files;
     const selectedCourse = coursesDropdown.value;
-    const selectedCourseName = coursesDropdown.selectedOptions[0].data;  // This gets the course name
-
-    console.log(coursesDropdown.selectedOptions[0].data)
+    const selectedCourseName = coursesDropdown.selectedOptions[0].text;  // This gets the course name
+    // if the above name call doesnt work, consider .text instead (data seemed to contain the text but maybe it doesnt always?)
     if (!selectedCourseName) {
         alert("Please select a course before uploading files.");
         return;
@@ -52,7 +52,7 @@ function handleFiles(event) {
 function saveFileToDocsFolder(file, course) {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("course", course); // Include the course name or ID
+    formData.append("course", course); // course name
 
     fetch("/upload", {
         method: "POST",
@@ -105,13 +105,14 @@ function displayFilePreview(fileName, fileType, isTrained) {
 function removeFileFromDocsFolder(fileName) {
     const coursesDropdown = document.getElementById('courses-dropdown');
     const selectedCourse = coursesDropdown.value;
-    const selectedCourseName = coursesDropdown.selectedOptions[0].data;  // This gets the course name
+    const selectedCourseName = coursesDropdown.selectedOptions[0].text;  // This gets the course name
 
     if (!selectedCourseName) {
         alert("Please select a course.");
         return;
     }
-
+    console.log(fileName)
+    console.log(selectedCourseName)
     fetch(`/delete?file=${fileName}&course=${selectedCourseName}`, {
         method: "DELETE"
     })

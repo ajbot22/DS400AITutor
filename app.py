@@ -124,14 +124,14 @@ def delete_file():
         return jsonify(success=False, message="No course specified")
 
     # Construct the file path with course included
-    file_path = f"{session.get('folder_prefix')}/{course}/{file_name}"
+    file_path = f"{session.get('folder_prefix')}{file_name}" #through testing, folder_prefix already had username/coursename/ 
     blob = bucket.blob(file_path)
 
     if blob.exists():
         blob.delete()
         return jsonify(success=True, message="File deleted")
     
-    return jsonify(success=False, message="File not found")
+    return jsonify(success=False, message="File not found at "+file_path)
 
 # Train model endpoint
 @app.route("/train", methods=["POST"])
