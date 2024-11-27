@@ -130,8 +130,20 @@ function removeFileFromDocsFolder(fileName) {
 // Run the take_prompts.py script when the button is clicked
 trainButton.addEventListener('click', () => {
     console.log("Running read_docs.py...");
+    const coursesDropdown = document.getElementById('courses-dropdown');
+    const selectedCourseName = coursesDropdown.selectedOptions[0].text;  // This gets the course name
+    console.log("Trying to train for course"+selectedCourseName)
+    if (!selectedCourseName) {
+        alert("Please select a course.");
+        return;
+    }
+
     fetch("/train", {
-        method: "POST"
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ course_name: selectedCourseName })
     })
     .then(response => response.json())
     .then(data => {

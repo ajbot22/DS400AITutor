@@ -137,8 +137,23 @@ def delete_file():
 @app.route("/train", methods=["POST"])
 def train_model():
     try:
-        subprocess.run(['python', 'train/read_docs.py'])
-        return jsonify({"success": True, "message": "Training completed successfully!"}), 200
+        # Get session and request data
+        username = session.get("username")  # Proctor's username
+        proctor_id = session.get("id")  # Proctor's ID
+        if not username or not proctor_id:
+            return jsonify({"success": False, "message": "User not logged in or proctor ID missing"}), 401
+        
+        data = request.get_json()
+        course_name = data.get("course_name")
+        if not course_name:
+            return jsonify({"success": False, "message": "Course name is required"}), 400
+
+        # Run the training script with username, course_name, and proctor_id
+        subprocess.run(['python', 'train/read_docs.py', username, course_name, str(proctor_id)], check=True)
+
+        return jsonify({"success": True, "message": f"Training completed successfully for course {course_name}!"}), 200
+    except subprocess.CalledProcessError as e:
+        return jsonify({"success": False, "message": f"Training script error: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"success": False, "message": f"Error occurred: {str(e)}"}), 500
 
