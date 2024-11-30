@@ -6,9 +6,9 @@ from pptx import Presentation
 import json
 from PIL import Image
 import psycopg2
-import easyocr  # Lightweight OCR for handwritten docs
+#import easyocr  # Lightweight OCR for handwritten docs
 import io
-import numpy as np
+#import numpy as np
 from google.cloud import storage  # Google Cloud Storage library
 from dotenv import load_dotenv
 
@@ -23,7 +23,7 @@ DB_USER = os.environ.get("DB_USER")
 DB_PASS = os.environ.get("DB_PASS")
 
 # Initialize EasyOCR reader (uses GPU if available, else CPU)
-reader = easyocr.Reader(['en'], gpu=True)
+#reader = easyocr.Reader(['en'], gpu=True)
 
 # Google Cloud Storage setup
 GCS_BUCKET_NAME = 'ai-tutor-docs' 
@@ -82,7 +82,8 @@ def is_valid_text(text):
 
 # Fallback to OCR if the typed text extraction fails
 def extract_text_from_images_using_ocr(pdf_bytes):
-    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    '''
+        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     text = ""
     for page_num in range(doc.page_count):
         page = doc.load_page(page_num)
@@ -96,6 +97,8 @@ def extract_text_from_images_using_ocr(pdf_bytes):
         
         text += " ".join(ocr_result) + "\n"
     return text
+    '''
+    return 'Functionality for Handwritten Docs Not Yet Included'
 
 # Function to process PDFs by first trying typed text extraction, then OCR fallback
 def process_pdf(pdf_bytes):
