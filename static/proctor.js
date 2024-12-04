@@ -165,6 +165,40 @@ function updateTrainedFiles() {
     });
 }
 
+document.getElementById('assign-student-btn').addEventListener('click', () => {
+    const studentUsername = document.getElementById('student-username').value.trim();
+    const coursesDropdown = document.getElementById('courses-dropdown'); 
+    const selectedCourseName = coursesDropdown.selectedOptions[0].text;  // This gets the course name.
+
+    if (!studentUsername) {
+        alert("Please enter a student username.");
+        return;
+    }
+
+    fetch('/assign-student', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+            username: studentUsername, 
+            course_name: selectedCourseName 
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Student "${studentUsername}" successfully assigned to the course "${selectedCourseName}".`);
+        } else {
+            alert(`Error: ${data.message}`);
+        }
+    })
+    .catch(err => {
+        console.error('Error assigning student:', err);
+        alert('An error occurred while assigning the student.');
+    });
+});
+
 // Function to load existing files in the docs folder
 function loadExistingFiles() {
     fetch("/load-docs")

@@ -157,23 +157,82 @@ def train_model():
     except Exception as e:
         return jsonify({"success": False, "message": f"Error occurred: {str(e)}"}), 500
 
+@app.route('/assign-student', methods=['POST'])
+def assign_student():
+    """
+    Assign a student to a course and update the `learned_context` for all entries in that course.
+    """
+    try:
+        data = request.get_json()
+        student_username = data.get('username')
+        course_name = data.get('course_name')
+        proctor_id = session.get('id')  # Ensure proctor is logged in
+        
+        if not (student_username and course_name and proctor_id):
+            return jsonify({'success': False, 'message': 'Missing required parameters.'}), 400
+
+        # Fetch the student ID
+        student_query = "SELECT id FROM Students WHERE username = %s"
+        course_query = "SELECT id FROM Courses WHERE name = %s AND proctor_id = %s"
+
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(student_query, (student_username,))
+                student_row = cursor.fetchone()
+                if not student_row:
+                    return jsonify({'success': False, 'message': 'Student not found.'}), 404
+                student_id = student_row[0]
+
+                cursor.execute(course_query, (course_name, proctor_id))
+                course_row = cursor.fetchone()
+                if not course_row:
+                    return jsonify({'success': False, 'message': 'Course not found.'}), 404
+                course_id = course_row[0]
+
+                # Fetch the current context for the course
+                context_query = "SELECT context FROM Courses WHERE id = %s"
+                cursor.execute(context_query, (course_id,))
+                context_row = cursor.fetchone()
+                learned_context = context_row[0] if context_row else ""
+
+                # Insert into Student_Courses table
+                insert_query = """
+                INSERT INTO Student_Courses (student_id, course_id, learned_context)
+                VALUES (%s, %s, %s)
+                """
+                cursor.execute(insert_query, (student_id, course_id, learned_context))
+
+                # Update learned_context for all course entries
+                update_query = """
+                UPDATE Student_Courses SET learned_context = %s WHERE course_id = %s
+                """
+                cursor.execute(update_query, (learned_context, course_id))
+
+            conn.commit()  # Ensure changes are committed
+
+        return jsonify({'success': True, 'message': 'Student assigned successfully.'}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
 # Student-specific API for asking questions
 @app.route('/ask-question', methods=['POST'])
 def ask_question():
-    data = request.json
-    user_question = data.get('question', '')
-    
-    # Load conversation history
-    if os.path.exists("context.json"):
-        with open("context.json", "r") as f:
-            conversation_history = json.load(f)["context"]
-    else:
-        conversation_history = "You are an AI tutor but you are currently untrained."
+    try:
+        data = request.get_json()
+        student_id = session.get('id')
+        course_name = data.get('courseName')
+        question = data.get('question')
 
-    tutor_response, updated_history = generate_gpt_response(conversation_history, user_question)
-    save_context(updated_history)
-    
-    return jsonify(success=True, response=tutor_response)
+        if not (student_id and course_name and question):
+            return jsonify({'success': False, 'message': 'Missing required parameters.'}), 400
+
+        # Call the generate_gpt_response function
+        tutor_response = generate_gpt_response(student_id, course_name, question)
+        
+        return jsonify({'success': True, 'response': tutor_response}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/get-courses', methods=['GET'])
 def get_courses():
@@ -193,6 +252,28 @@ def get_courses():
     finally:
         cursor.close()
         conn.close()
+        
+@app.route('/get-student-courses', methods=['GET'])
+def get_student_courses():
+    try:
+        student_id = session.get('id')
+
+        if not student_id:
+            return jsonify({'success': False, 'message': 'Student not logged in.'}), 403
+
+        query = """
+        SELECT c.id, c.name
+        FROM Courses c
+        INNER JOIN Student_Courses sc ON c.id = sc.course_id
+        WHERE sc.student_id = %s
+        """
+        with get_db_connection().cursor() as cursor:
+            cursor.execute(query, (student_id,))
+            courses = [{'id': row[0], 'name': row[1]} for row in cursor.fetchall()]
+
+        return jsonify({'success': True, 'courses': courses}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/add-course', methods=['POST'])
 def add_course():
